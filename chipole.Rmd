@@ -1,19 +1,39 @@
+---
+title: 'Geographic Data Visualization: a basic debrief on Chipole restaurants'
+author: "Allen Xu"
+date: "9/12/2020"
+output: html_document
+---
+*In this report, I will try to perform data visualization of Chipole restaurants' distribution in U.S. using leaflet packages*
+<br><br>
+
+## preparation
+
+```{r load packages, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(ggplot2)
 library(usmap)
 library(leaflet)
 library(maps)
-# read date
+```
+<br><br>
+
+## overall look
+<br><br>
+*First we begin by taking an overlook of chipole distribution by state. We used the location dataset available from Kaggle.*
+<br><br>
+```{r message=FALSE, warning=FALSE}
 location <- read_csv("chipotle_stores.csv")
-
-
-# I. over look of chipole count by state ----------------------------------
 
 count <- location %>%
     group_by(state) %>%
     tally()
 colnames(count) <- c("full", "count")
-
+```
+<br><br>
+*In this sections, we used the usmaps package to provide the base picture of U.S. US maps package allows us to change directly on the background element.*
+<br><br>
+```{r warning=FALSE}
 data(statepop)
 
 count <- count %>%
@@ -22,12 +42,16 @@ count <- count[,1:4]
 
 
 plot_usmap(data = count, values = "count") + scale_fill_continuous(low = "white", high = "red", name = "count", label = scales::comma) + theme(legend.position = "right") 
+```
+<br><br>
+*Here we can see usmap package allow us to distinguish between states by another independent variable, in this case it's the count of restaurants*
+<br><br>
 
-
-# II. pin-points of chipole restaurants -----------------------------------
-
-
-
+## specific pins
+<br><br>
+*The disadvantage of the graph above is that we cannot tell where exactly do the restaurants location within each state. Leaflet helps us to pin specific location on the map*
+<br><br>
+```{r set up pins}
 greenLeafIcon <- makeIcon(
     iconUrl = "http://leafletjs.com/docs/images/leaf-green.png",
     iconWidth = 5, iconHeight = 5,
@@ -36,15 +60,20 @@ greenLeafIcon <- makeIcon(
     shadowWidth = 5, shadowHeight = 5,
     shadowAnchorX = 5, shadowAnchorY = 5
 )
-
+```
+<br><br>
+*Here is a display of restaurants in Chicago*
+<br><br>
+```{r}
 leaflet() %>%
     addTiles() %>%  # Add map tiles
     addMarkers(lng=location[location$location == "Chicago",]$longitude, lat = location[location$location == "Chicago",]$latitude, popup = location$address)
 
-
-
-# us chipole marker -------------------------------------------------------
-
+```
+<br><br>
+*Then let's try to elaborate the display to a national level*
+<br><br>
+```{r message=FALSE, warning=FALSE}
 mapStates = map("state", fill = TRUE, plot = FALSE)
 leaflet(data = mapStates) %>% addTiles() %>%
     addPolygons(fillColor = topo.colors(10, alpha = NULL), stroke = FALSE)
@@ -58,3 +87,6 @@ df = data.frame(
 )
 m = leaflet(df) %>% addTiles()
 m %>% addCircleMarkers(radius = ~size, color = ~color, fill = FALSE)
+
+```
+
